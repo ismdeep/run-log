@@ -17,10 +17,22 @@ import (
 const OutputEnvName = "OUTPUT"
 const BreakLineEnvName = "BREAK_LINE"
 
-var homePath string
+var (
+	homePath          string
+	gitHash           string
+	goVersion         string
+	gitCommitDateTime string
+	version           string
+)
 
 func showHelp() {
-	fmt.Println("Usage: [OUTPUT=<output log file path|default for stdout>] [BREAK_LINE=<true:default|false>] run-log <commands>")
+	fmt.Printf(`Usage: [OUTPUT=<output log file path|default for stdout>] [BREAK_LINE=<true:default|false>] run-log <commands>
+
+Version: %v
+Git Commit Hash: %v
+Git COmmit Date: %v
+Go Version: %v
+`, version, gitHash, gitCommitDateTime, goVersion)
 }
 
 func AlreadyExists(hash string) bool {
