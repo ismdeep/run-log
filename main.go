@@ -49,7 +49,12 @@ func PushCommand(hash string, cmd string) error {
 }
 
 func init() {
-	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
+	homePath := os.Getenv("HOME")
+	if err := os.MkdirAll(fmt.Sprintf("%v/.run-log/logs", homePath), 0777); err != nil {
+		panic(err)
+	}
+
+	db, err := gorm.Open(sqlite.Open(fmt.Sprintf("%v/.run-log/data.db", homePath)), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
@@ -64,14 +69,8 @@ func init() {
 
 func ParseOutPointer() *os.File {
 	homePath := os.Getenv("HOME")
-
 	outStr := os.Getenv(OutputEnvName)
 	if outStr == "stdout" {
-		return os.Stdout
-	}
-
-	if err := os.MkdirAll(fmt.Sprintf("%v/.run-log/logs", homePath), 0777); err != nil {
-		panic(err)
 		return os.Stdout
 	}
 
@@ -79,9 +78,7 @@ func ParseOutPointer() *os.File {
 		t, _ := json.Marshal(os.Args[1:])
 		cmdStrFull := string(t)
 		fName := fmt.Sprintf("%x", md5.Sum([]byte(cmdStrFull)))
-		if err := PushCommand(fName, cmdStrFull); err != nil {
-
-		}
+		_ = PushCommand(fName, cmdStrFull)
 		outStr = fmt.Sprintf("%v/.run-log/logs/%v.log", homePath, fName)
 	}
 
