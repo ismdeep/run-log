@@ -5,8 +5,6 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
 	"os"
 	"os/exec"
 	"strconv"
@@ -17,58 +15,25 @@ import (
 const OutputEnvName = "OUTPUT"
 const BreakLineEnvName = "BREAK_LINE"
 
+var homePath string
+
 func showHelp() {
 	fmt.Println("Usage: [OUTPUT=<output log file path|default for stdout>] [BREAK_LINE=<true:default|false>] run-log <commands>")
 }
 
-var conn *gorm.DB
-
-type Command struct {
-	Hash string
-	Cmd  string
-}
-
 func PushCommand(hash string, cmd string) error {
-	// 1. check exists
-	var cnt int64
-	if err := conn.Model(&Command{}).Where("hash=?", hash).Count(&cnt).Error; err != nil {
-		return err
-	}
-
-	if cnt > 0 {
-		return nil
-	}
-
-	if err := conn.Create(&Command{
-		Hash: hash,
-		Cmd:  cmd,
-	}).Error; err != nil {
-		return err
-	}
 	return nil
 }
 
 func init() {
-	homePath := os.Getenv("HOME")
+	homePath = os.Getenv("HOME")
 	if err := os.MkdirAll(fmt.Sprintf("%v/.run-log/logs", homePath), 0777); err != nil {
 		panic(err)
 	}
 
-	db, err := gorm.Open(sqlite.Open(fmt.Sprintf("%v/.run-log/data.db", homePath)), &gorm.Config{})
-	if err != nil {
-		panic(err)
-	}
-
-	if err := db.AutoMigrate(&Command{}); err != nil {
-		panic(err)
-	}
-
-	conn = db
-
 }
 
 func ParseOutPointer() *os.File {
-	homePath := os.Getenv("HOME")
 	outStr := os.Getenv(OutputEnvName)
 	if outStr == "stdout" {
 		return os.Stdout
