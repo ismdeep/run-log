@@ -1,9 +1,13 @@
 SHELL=/bin/bash
 
+
+COMMIT_VERSION:=$(shell bash commit-version.bash)
+
 help:
+	@echo "$(COMMIT_VERSION)"
 
 build:
-	GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o ./bin/run-log-$(GOOS)-$(GOARCH) main.go
+	GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o ./bin/$(COMMIT_VERSION)/run-log-$(GOOS)-$(GOARCH) main.go
 
 build-all:
 	make build GOOS=linux GOARCH=amd64
