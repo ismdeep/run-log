@@ -5,9 +5,11 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -21,8 +23,34 @@ func showHelp() {
 	fmt.Println("Usage: [OUTPUT=<output log file path|default for stdout>] [BREAK_LINE=<true:default|false>] run-log <commands>")
 }
 
-func PushCommand(hash string, cmd string) error {
-	return nil
+func AlreadyExists(hash string) bool {
+	bytes, err := ioutil.ReadFile(fmt.Sprintf("%v/.run-log/name.txt", homePath))
+	if err != nil {
+		return false
+	}
+	content := string(bytes)
+	lines := strings.Split(content, "\n")
+	for _, line := range lines {
+		if strings.Index(line, hash) == 0 {
+			return true
+		}
+	}
+	return false
+}
+
+func PushCommand(hash string, cmd string) {
+	if AlreadyExists(hash) {
+		return
+	}
+
+	f, err := os.OpenFile(fmt.Sprintf("%v/.run-log/name.txt", homePath), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+	if err != nil {
+		return
+	}
+
+	_, _ = f.WriteString(fmt.Sprintf("%v    %v\n", hash, cmd))
+
+	return
 }
 
 func init() {
@@ -43,7 +71,7 @@ func ParseOutPointer() *os.File {
 		t, _ := json.Marshal(os.Args[1:])
 		cmdStrFull := string(t)
 		fName := fmt.Sprintf("%x", md5.Sum([]byte(cmdStrFull)))
-		_ = PushCommand(fName, cmdStrFull)
+		PushCommand(fName, cmdStrFull)
 		outStr = fmt.Sprintf("%v/.run-log/logs/%v.log", homePath, fName)
 	}
 
