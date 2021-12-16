@@ -7,7 +7,7 @@ help:
 	@echo "$(COMMIT_VERSION)"
 
 build:
-	GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o ./bin/$(COMMIT_VERSION)/run-log-$(GOOS)-$(GOARCH) main.go
+	CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o ./bin/$(COMMIT_VERSION)/run-log-$(GOOS)-$(GOARCH) main.go
 
 build-all:
 	make build GOOS=linux GOARCH=386
